@@ -57,13 +57,11 @@
               makeWrapper ${hermesAgentPkg}/bin/hermes $out/bin/hermes-webui-agent \
                 --argv0 hermes
 
-              # Find the Python interpreter from the hermes-agent package
-              HERMES_PYTHON=$(grep -oP '/nix/store/[^ ]+/bin/python[0-9.]+' ${hermesAgentPkg}/bin/hermes | head -1)
-              if [ -z "$HERMES_PYTHON" ]; then
-                # Fallback: extract from the inner wrapper
-                INNER=$(grep 'exec ' ${hermesAgentPkg}/bin/hermes | tail -1 | grep -oP '"/nix/store/[^"]+/bin/hermes"' | tr -d '"')
-                HERMES_PYTHON=$(head -1 "$INNER" | sed 's/#!//')
-              fi
+              # Extract the inner Python env from hermes-agent's wrapper chain:
+              # hermes (bash wrapper) -> exec "...hermes-agent-env/bin/hermes" (python script)
+              # The Python script's shebang points to the env's python3
+              INNER_BIN=$(grep 'exec ' ${hermesAgentPkg}/bin/hermes | tail -1 | sed 's/.*exec "\([^"]*\)".*/\1/')
+              HERMES_PYTHON=$(head -1 "$INNER_BIN" | sed 's/^#!//')
 
               makeWrapper "$HERMES_PYTHON" $out/bin/hermes-webui \
                 --add-flags "$out/lib/hermes-webui/server.py" \
