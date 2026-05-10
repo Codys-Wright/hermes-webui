@@ -35,7 +35,7 @@
 
           hermes-webui = pkgs.stdenv.mkDerivation {
             pname = "hermes-webui";
-            version = "0.50.45";
+            version = "0.51.34";
 
             src = pkgs.lib.cleanSource ./.;
 
